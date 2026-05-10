@@ -58,6 +58,12 @@ const Overview = () => {
         { name: 'Paris, France', count: 240, growth: '+5%' },
       ];
 
+  // Pie chart data from real cities or fallback to mock categories
+  const pieData = topCities.length > 0
+    ? topCities.map(c => ({ name: c.city, value: c.visits }))
+    : tripCategoryData;
+  const pieDataKey = topCities.length > 0 ? 'value' : 'value';
+
   return (
     <DashboardLayout title="Admin Overview">
       {/* Live Data Indicator */}
@@ -79,7 +85,7 @@ const Overview = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '32px' }}>
-        <ChartCard title="User Growth" subtitle="Daily registration trends over the last 30 days">
+        <ChartCard title="Engagement Trends" subtitle="Active users and trip creations">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={userGrowthData}>
               <defs>
@@ -100,35 +106,39 @@ const Overview = () => {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Trip Categories" subtitle="Distribution by trip type">
+        <ChartCard title="Top Destinations" subtitle="Most popular planned cities">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={tripCategoryData}
+                data={pieData}
                 innerRadius={60}
                 outerRadius={80}
                 paddingAngle={5}
-                dataKey="value"
+                dataKey={pieDataKey}
+                nameKey="name"
               >
-                {tripCategoryData.map((entry, index) => (
+                {pieData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '12px' }}>
-            {tripCategoryData.map((entry, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[i % COLORS.length] }} />
-                {entry.name}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+            {pieData.slice(0, 4).map((entry, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[i % COLORS.length] }} />
+                  {entry.name}
+                </div>
+                <span style={{ fontWeight: '600' }}>{entry.value} trips</span>
               </div>
             ))}
           </div>
         </ChartCard>
       </div>
 
-      {/* Top Destinations from Backend */}
+      {/* Top Destinations + Recent Activity */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
         <div className="card">
           <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '20px' }}>

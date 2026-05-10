@@ -90,7 +90,7 @@ export const RoleProvider = ({ children }) => {
   }
 
   return (
-    <RoleContext.Provider value={{ user, login, logout, hasPermission }}>
+    <RoleContext.Provider value={{ user, login, logout, hasPermission, loading }}>
       {children}
     </RoleContext.Provider>
   );

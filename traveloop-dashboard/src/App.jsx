@@ -14,7 +14,15 @@ import Reports from './pages/Reports';
 import Login from './pages/Login';
 
 function App() {
-  const { user } = useRole();
+  const { user, loading } = useRole();
+
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+        <div className="animate-pulse" style={{ fontSize: '18px', fontWeight: '700', color: 'var(--accent)' }}>Traveloop Dashboard...</div>
+      </div>
+    );
+  }
 
   // Guard: Show login if not authenticated
   if (!user) {
