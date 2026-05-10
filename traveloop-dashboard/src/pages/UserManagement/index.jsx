@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import DataTable from '../../components/ui/DataTable';
+import { getAdminUsers } from '../../services/api';
 import { usersTableData } from '../../data/mockData';
-import { MoreHorizontal, UserPlus } from 'lucide-react';
+import { MoreHorizontal, UserPlus, RefreshCw } from 'lucide-react';
 import UserModal from '../../modals/UserModal';
 import ActionModal from '../../modals/ActionModal';
 import { useRole } from '../../context/RoleContext';
@@ -11,8 +12,35 @@ const UserManagement = () => {
   const { hasPermission } = useRole();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUserAction, setSelectedUserAction] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [isLive, setIsLive] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const canAddUser = hasPermission('create_user'); // I'll add this to context or just use role check
+  const canAddUser = hasPermission('create_user');
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const data = await getAdminUsers(1, 50);
+      setUsers(data.map(u => ({
+        id: u.id,
+        name: u.full_name,
+        email: u.email,
+        role: u.role === 'admin' ? 'Admin' : 'User',
+        status: u.is_active ? 'Active' : 'Inactive',
+        joined: new Date(u.created_at).toLocaleDateString('en-CA'),
+      })));
+      setIsLive(true);
+    } catch {
+      // Fallback to mock
+      setUsers(usersTableData);
+      setIsLive(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchUsers(); }, []);
 
   const columns = [
     { 
@@ -54,18 +82,32 @@ const UserManagement = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' }}>Users</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Manage your platform users and their permissions.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Manage your platform users and their permissions.</p>
+            <div style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: isLive ? '#22c55e' : '#f59e0b',
+            }} />
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              {isLive ? 'Live' : 'Demo'}
+            </span>
+          </div>
         </div>
-        <button 
-          className="btn btn-primary" 
-          onClick={() => setIsModalOpen(true)}
-          disabled={!canAddUser}
-          style={{ opacity: canAddUser ? 1 : 0.5, cursor: canAddUser ? 'pointer' : 'not-allowed' }}
-          title={!canAddUser ? "Only Super Admins can add users" : ""}
-        >
-          <UserPlus size={16} />
-          Add New User
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-ghost" onClick={fetchUsers} title="Refresh">
+            <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          </button>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setIsModalOpen(true)}
+            disabled={!canAddUser}
+            style={{ opacity: canAddUser ? 1 : 0.5, cursor: canAddUser ? 'pointer' : 'not-allowed' }}
+            title={!canAddUser ? "Only Super Admins can add users" : ""}
+          >
+            <UserPlus size={16} />
+            Add New User
+          </button>
+        </div>
       </div>
 
       <div className="card" style={{ padding: '0' }}>
@@ -85,7 +127,7 @@ const UserManagement = () => {
             }}
           />
         </div>
-        <DataTable columns={columns} data={usersTableData} />
+        <DataTable columns={columns} data={users} />
       </div>
 
       <UserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
@@ -93,8 +135,15 @@ const UserManagement = () => {
         isOpen={!!selectedUserAction} 
         onClose={() => setSelectedUserAction(null)} 
         title="Manage User"
-        message={selectedUserAction ? `Opening management portal for ${selectedUserAction.name}. You can update roles, reset passwords, or suspend this account from the elevated access terminal.` : ""}
+        message={selectedUserAction ? `Opening management portal for ${selectedUserAction.name} (${selectedUserAction.email}). Role: ${selectedUserAction.role}, Status: ${selectedUserAction.status}.` : ""}
       />
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </DashboardLayout>
   );
 };
