@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../lib/api';
+import { loginAPI, getCurrentUser, clearTokens, loadTokens } from '../services/api';
+import { authUsers } from '../data/mockData';
 
 const RoleContext = createContext();
 
@@ -7,36 +8,58 @@ export const RoleProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // On app boot, check if we have a stored token and try to restore session
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const userData = await api.get('/users/me');
-        setUser(userData);
-      } catch (err) {
-        api.clearToken();
-      } finally {
-        setLoading(false);
+    const restoreSession = async () => {
+      const hasToken = loadTokens();
+      if (hasToken) {
+        try {
+          const profile = await getCurrentUser();
+          setUser({
+            id: profile.id,
+            name: profile.full_name,
+            email: profile.email,
+            role: profile.role === 'admin' ? 'super-admin' : 'admin',
+          });
+        } catch {
+          clearTokens();
+        }
       }
+      setLoading(false);
     };
-    initAuth();
+    restoreSession();
   }, []);
 
   const login = async (id, password) => {
+    // First try real backend login (email-based)
     try {
-      const { access_token } = await api.post('/auth/login', { email: id, password });
-      api.setToken(access_token);
-      const userData = await api.get('/users/me');
-      setUser(userData);
+      await loginAPI(id, password);
+      const profile = await getCurrentUser();
+      setUser({
+        id: profile.id,
+        name: profile.full_name,
+        email: profile.email,
+        role: profile.role === 'admin' ? 'super-admin' : 'admin',
+      });
       return true;
-    } catch (err) {
-      console.error('Login failed:', err);
+    } catch {
+      // Fallback to mock auth for offline/demo mode
+      const authUser = authUsers.find(u => u.id === id && u.password === password);
+      if (authUser) {
+        setUser({
+          name: authUser.name,
+          role: authUser.role,
+          email: `${authUser.id}@traveloop.com`
+        });
+        return true;
+      }
       return false;
     }
   };
 
   const logout = () => {
+    clearTokens();
     setUser(null);
-    api.clearToken();
   };
 
   const hasPermission = (action) => {
@@ -53,6 +76,18 @@ export const RoleProvider = ({ children }) => {
     ];
     return !restrictedActions.includes(action);
   };
+
+  // Show nothing while checking auth
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '20px', margin: '0 auto 12px' }}>T</div>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <RoleContext.Provider value={{ user, login, logout, hasPermission, loading }}>

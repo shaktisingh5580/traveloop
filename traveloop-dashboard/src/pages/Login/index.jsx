@@ -1,20 +1,28 @@
 import React, { useState } from 'react';
 import { useRole } from '../../context/RoleContext';
-import { Lock, User, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
 
 const Login = () => {
   const { login } = useRole();
-  const [id, setId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
-    const success = login(id, password);
-    if (!success) {
-      setError('Invalid ID or password. Please try again.');
+    try {
+      const success = await login(email, password);
+      if (!success) {
+        setError('Invalid credentials. Please try again.');
+      }
+    } catch {
+      setError('Connection error. Please check if the backend is running.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,14 +72,14 @@ const Login = () => {
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Admin ID</label>
+            <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Email</label>
             <div style={{ position: 'relative' }}>
-              <User size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input 
                 type="text" 
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                placeholder="Enter your ID"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@traveloop.com"
                 style={{
                   width: '100%',
                   background: 'var(--bg-elevated)',
@@ -107,19 +115,39 @@ const Login = () => {
             </div>
           </div>
 
-          <button className="btn btn-primary" type="submit" style={{ padding: '14px', marginTop: '8px' }}>
-            Sign In
+          <button 
+            className="btn btn-primary" 
+            type="submit" 
+            style={{ padding: '14px', marginTop: '8px', opacity: isLoading ? 0.7 : 1 }}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Signing In...</>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
 
         <div style={{ marginTop: '32px', textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+            <strong style={{ color: 'var(--text-secondary)' }}>Backend Auth (when server is running):</strong><br/>
+            Email: <span style={{ color: 'var(--text-primary)' }}>admin@traveloop.com</span> / Pass: <span style={{ color: 'var(--text-primary)' }}>demo123</span>
+          </p>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            Mock Credentials:<br/>
+            <strong style={{ color: 'var(--text-secondary)' }}>Offline/Demo Mode:</strong><br/>
             ID: <span style={{ color: 'var(--text-primary)' }}>admin</span> / Pass: <span style={{ color: 'var(--text-primary)' }}>password123</span><br/>
             ID: <span style={{ color: 'var(--text-primary)' }}>super</span> / Pass: <span style={{ color: 'var(--text-primary)' }}>superpassword</span>
           </p>
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
