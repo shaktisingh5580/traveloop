@@ -35,11 +35,17 @@ export default function Login() {
           
           {/* Logo & Avatar Circle */}
           <div className="flex flex-col items-center mb-10">
+<<<<<<< HEAD
             <Link href="/" className="mb-6">
               <div className="w-20 h-20 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center overflow-hidden hover:border-brand-500 transition-colors">
                 <div className="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center shadow-brand">
                   <span className="text-white text-2xl font-bold font-outfit">T</span>
                 </div>
+=======
+            <Link href="/" className="mb-8">
+              <div className="w-auto h-12 flex items-center justify-center">
+                <img src="/logo.png" alt="Traveloop Logo" className="w-auto h-full object-contain" />
+>>>>>>> dd1cdb9e1bffd1773a60055a1c9a10ad4038c1ac
               </div>
             </Link>
             <h1 className="text-3xl font-bold mb-2">Welcome back</h1>

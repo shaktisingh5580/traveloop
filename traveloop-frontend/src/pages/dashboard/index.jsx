@@ -76,7 +76,7 @@ export default function Dashboard() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute bottom-8 left-8 text-white">
             <p className="text-xs font-bold uppercase tracking-widest mb-2 opacity-80">
-              Welcome back, {user?.full_name?.split(" ")[0] || "Traveler"}
+              Welcome back, {user?.full_name?.split(" ")[0] || user?.name?.split(" ")[0] || "Traveler"}
             </p>
             <h1 className="text-3xl md:text-4xl font-bold font-outfit">
               Where will you go next?
@@ -151,14 +151,18 @@ export default function Dashboard() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-100 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300">
-                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
-                    </svg>
+                    {loading ? (
+                      <div className="w-full h-full animate-pulse bg-slate-200" />
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+                      </svg>
+                    )}
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-sm font-bold text-white truncate">{city?.name || "Loading..."}</h3>
+                  <h3 className="text-sm font-bold text-white truncate">{city?.name || "—"}</h3>
                   {city?.country_name && (
                     <p className="text-[10px] text-white/70 font-medium">{city.country_name}</p>
                   )}
@@ -239,7 +243,7 @@ export default function Dashboard() {
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">No trips yet</h3>
               <p className="text-sm text-slate-500 mb-6">Start planning your first adventure!</p>
-              <Link href="/trips/create" className="btn-brand px-6 py-3 text-sm inline-flex items-center gap-2">
+              <Link href="/trips/new" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-500 text-white text-sm font-bold rounded-xl hover:bg-brand-600 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                 Plan a trip
               </Link>
@@ -249,7 +253,7 @@ export default function Dashboard() {
 
         {/* Floating "Plan a trip" Button */}
         <Link
-          href="/trips/create"
+          href="/trips/new"
           className="fixed bottom-8 right-8 bg-brand-500 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-brand-500/30 hover:bg-brand-600 hover:shadow-brand-500/50 hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 font-bold text-sm z-50"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
