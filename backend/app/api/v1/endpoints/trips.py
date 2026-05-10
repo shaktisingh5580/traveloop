@@ -8,7 +8,7 @@ import re
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select, func, delete
+from sqlalchemy import select, func, delete, cast, String
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -70,7 +70,7 @@ async def list_trips(
     query = select(Trip).where(Trip.user_id == user_id)
 
     if status_filter:
-        query = query.where(Trip.status == status_filter)
+        query = query.where(cast(Trip.status, String) == status_filter)
 
     query = query.order_by(Trip.created_at.desc())
     result = await db.execute(query)

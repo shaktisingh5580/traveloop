@@ -25,10 +25,16 @@ async def get_profile(user_id: str = Depends(get_current_user_id), db: AsyncSess
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return user
-
-
-@router.put("/me", response_model=UserResponse)
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "avatar_url": user.avatar_url,
+        "phone": user.phone,
+        "language_pref": user.language_pref,
+        "role": user.role,
+        "created_at": user.created_at.isoformat(),
+    }
 async def update_profile(
     data: UserUpdate,
     user_id: str = Depends(get_current_user_id),
@@ -44,10 +50,16 @@ async def update_profile(
     for field, value in update_data.items():
         setattr(user, field, value)
 
-    return user
-
-
-@router.post("/me/avatar", response_model=UserResponse)
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "avatar_url": user.avatar_url,
+        "phone": user.phone,
+        "language_pref": user.language_pref,
+        "role": user.role,
+        "created_at": user.created_at.isoformat(),
+    }
 async def upload_avatar(
     file: UploadFile = File(...),
     user_id: str = Depends(get_current_user_id),
@@ -66,7 +78,16 @@ async def upload_avatar(
         raise HTTPException(status_code=400, detail=str(e))
 
     user.avatar_url = url
-    return user
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "avatar_url": user.avatar_url,
+        "phone": user.phone,
+        "language_pref": user.language_pref,
+        "role": user.role,
+        "created_at": user.created_at.isoformat(),
+    }
 
 
 @router.get("/me/saved-destinations")

@@ -18,8 +18,8 @@ from app.api.v1.router import api_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
-    # Startup: Create upload directory
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    print(f"DEBUG: CORS_ORIGINS = {settings.CORS_ORIGINS}")
     yield
     # Shutdown: Close DB connections
     await engine.dispose()

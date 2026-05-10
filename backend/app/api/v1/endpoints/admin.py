@@ -1,7 +1,7 @@
 """Admin dashboard endpoints. Owner: Shakti"""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, cast, String
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone, timedelta
 from app.core.database import get_db
@@ -24,7 +24,7 @@ async def get_platform_stats(admin_id: str = Depends(require_admin), db: AsyncSe
     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
     total_users = (await db.execute(select(func.count(User.id)).where(User.is_active == True))).scalar()
     total_trips = (await db.execute(select(func.count(Trip.id)))).scalar()
-    active_trips = (await db.execute(select(func.count(Trip.id)).where(Trip.status == "ongoing"))).scalar()
+    active_trips = (await db.execute(select(func.count(Trip.id)).where(cast(Trip.status, String) == "ongoing"))).scalar()
     public_trips = (await db.execute(select(func.count(Trip.id)).where(Trip.is_public == True))).scalar()
     new_trips = (await db.execute(select(func.count(Trip.id)).where(Trip.created_at >= week_ago))).scalar()
     new_users = (await db.execute(select(func.count(User.id)).where(User.created_at >= week_ago))).scalar()
