@@ -1,27 +1,42 @@
-import React, { createContext, useContext, useState } from 'react';
-import { authUsers } from '../data/mockData';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../lib/api';
 
 const RoleContext = createContext();
 
 export const RoleProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (id, password) => {
-    const authUser = authUsers.find(u => u.id === id && u.password === password);
-    if (authUser) {
-      console.log('Login successful for:', authUser.name);
-      setUser({
-        name: authUser.name,
-        role: authUser.role,
-        email: `${authUser.id}@traveloop.com`
-      });
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const userData = await api.get('/users/me');
+        setUser(userData);
+      } catch (err) {
+        api.clearToken();
+      } finally {
+        setLoading(false);
+      }
+    };
+    initAuth();
+  }, []);
+
+  const login = async (id, password) => {
+    try {
+      const { access_token } = await api.post('/auth/login', { email: id, password });
+      api.setToken(access_token);
+      const userData = await api.get('/users/me');
+      setUser(userData);
       return true;
+    } catch (err) {
+      console.error('Login failed:', err);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
     setUser(null);
+    api.clearToken();
   };
 
   const hasPermission = (action) => {
@@ -40,7 +55,7 @@ export const RoleProvider = ({ children }) => {
   };
 
   return (
-    <RoleContext.Provider value={{ user, login, logout, hasPermission }}>
+    <RoleContext.Provider value={{ user, login, logout, hasPermission, loading }}>
       {children}
     </RoleContext.Provider>
   );

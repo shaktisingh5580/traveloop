@@ -1,45 +1,105 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/router";
 
 export default function Signup() {
+  const { signup } = useAuth();
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: ""
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const success = await signup({
+      name: `${formData.firstName} ${formData.lastName}`,
+      email: formData.email,
+      password: formData.password
+    });
+    if (success) {
+      router.push("/dashboard");
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   return (
     <>
       <Head><title>Create Account | Traveloop</title></Head>
-      <div className="min-h-screen flex bg-white">
-        <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-20">
-          <div className="w-full max-w-sm mx-auto">
-            <Link href="/" className="inline-flex items-center gap-2 mb-10">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                <span className="text-white text-sm font-bold font-outfit">T</span>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="card max-w-xl w-full bg-white !p-12">
+          <div className="flex flex-col items-center mb-10 text-center">
+            <Link href="/" className="mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center shadow-brand">
+                <span className="text-white text-2xl font-bold font-outfit">T</span>
               </div>
-              <span className="text-xl font-bold font-outfit tracking-tight text-slate-900">Traveloop</span>
             </Link>
-            <h2 className="text-3xl font-bold font-outfit text-slate-900 mb-1">Create your account</h2>
-            <p className="text-sm text-slate-500 mb-8">Start planning your next adventure today.</p>
-            <form className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">First name</label>
-                  <input type="text" placeholder="John" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-500 transition-all" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Last name</label>
-                  <input type="text" placeholder="Doe" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-500 transition-all" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
-                <input type="email" placeholder="name@example.com" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-500 transition-all" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
-                <input type="password" placeholder="Min 8 characters" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-500 transition-all" />
-              </div>
-              <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl px-4 py-3 transition-colors mt-2 shadow-md">Create Account</button>
-            </form>
-            <div className="mt-6 text-sm text-slate-500 text-center">
-              Already have an account? <Link href="/login" className="text-emerald-600 font-semibold hover:text-emerald-700">Sign in</Link>
+            <h1 className="text-3xl font-bold mb-2">Join Traveloop</h1>
+            <p className="text-slate-500">Plan your next adventure with the community.</p>
+          </div>
+
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">First Name</label>
+              <input 
+                name="firstName"
+                type="text" 
+                placeholder="John" 
+                className="input-field" 
+                value={formData.firstName}
+                onChange={handleChange}
+              />
             </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Last Name</label>
+              <input 
+                name="lastName"
+                type="text" 
+                placeholder="Doe" 
+                className="input-field" 
+                value={formData.lastName}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Email Address</label>
+              <input 
+                name="email"
+                type="email" 
+                placeholder="name@example.com" 
+                className="input-field" 
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Password</label>
+              <input 
+                name="password"
+                type="password" 
+                placeholder="Min. 8 characters" 
+                className="input-field" 
+                value={formData.password}
+                onChange={handleChange}
+              />
+            </div>
+            <button type="submit" className="md:col-span-2 btn-brand py-4 text-lg mt-2">Create Account</button>
+          </form>
+
+          <div className="mt-10 pt-8 border-t border-slate-100 text-center">
+            <p className="text-sm text-slate-500">
+              Already have an account?{" "}
+              <Link href="/login" className="text-brand-500 font-bold hover:text-brand-600">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>

@@ -5,11 +5,16 @@ import ChartCard from '../../components/ui/ChartCard';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { activityData } from '../../data/mockData';
 import ActionModal from '../../modals/ActionModal';
 
 const ActivityInsights = () => {
   const [selectedFeature, setSelectedFeature] = useState(null);
+
+  const activityData = [
+    { hour: '00:00', users: 120 }, { hour: '04:00', users: 80 },
+    { hour: '08:00', users: 350 }, { hour: '12:00', users: 820 },
+    { hour: '16:00', users: 950 }, { hour: '20:00', users: 450 },
+  ];
 
   return (
     <DashboardLayout title="Activity Insights">

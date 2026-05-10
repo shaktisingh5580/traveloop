@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import DataTable from '../../components/ui/DataTable';
-import { usersTableData } from '../../data/mockData';
+import { api } from '../../lib/api';
 import { MoreHorizontal, UserPlus } from 'lucide-react';
 import UserModal from '../../modals/UserModal';
 import ActionModal from '../../modals/ActionModal';
@@ -11,8 +11,24 @@ const UserManagement = () => {
   const { hasPermission } = useRole();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUserAction, setSelectedUserAction] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const canAddUser = hasPermission('create_user'); // I'll add this to context or just use role check
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await api.get('/admin/users');
+        setUsers(data);
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const canAddUser = hasPermission('create_user');
 
   const columns = [
     { 
@@ -20,7 +36,7 @@ const UserManagement = () => {
       render: (row) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
-            {row.name.split(' ').map(n => n[0]).join('')}
+            {row.name ? row.name.split(' ').map(n => n[0]).join('') : '?'}
           </div>
           <div>
             <div style={{ fontWeight: '500' }}>{row.name}</div>
@@ -34,7 +50,7 @@ const UserManagement = () => {
       header: 'Status', 
       render: (row) => (
         <span className={`badge badge-${row.status === 'Active' ? 'success' : row.status === 'Inactive' ? 'warning' : 'danger'}`}>
-          {row.status}
+          {row.status || 'Active'}
         </span>
       )
     },
@@ -69,7 +85,23 @@ const UserManagement = () => {
       </div>
 
       <div className="card" style={{ padding: '0' }}>
-        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '12px' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {['All Users', 'Active', 'Inactive'].map((tab) => (
+              <button 
+                key={tab} 
+                className="btn btn-ghost" 
+                style={{ 
+                  fontSize: '13px', 
+                  padding: '6px 12px',
+                  background: tab === 'All Users' ? 'var(--bg-elevated)' : 'transparent',
+                  color: tab === 'All Users' ? 'var(--accent)' : 'var(--text-secondary)'
+                }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
           <input 
             type="text" 
             placeholder="Filter by name or email..." 
@@ -80,12 +112,16 @@ const UserManagement = () => {
               padding: '6px 12px',
               fontSize: '13px',
               color: 'var(--text-primary)',
-              width: '300px',
+              width: '240px',
               outline: 'none'
             }}
           />
         </div>
-        <DataTable columns={columns} data={usersTableData} />
+        {loading ? (
+          <div style={{ padding: '40px', textAlign: 'center' }}>Loading users...</div>
+        ) : (
+          <DataTable columns={columns} data={users} />
+        )}
       </div>
 
       <UserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
