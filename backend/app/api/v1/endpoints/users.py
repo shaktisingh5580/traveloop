@@ -19,7 +19,6 @@ router = APIRouter()
 
 
 @router.get("/me")
-<<<<<<< Updated upstream
 async def get_profile(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
     """Get current user profile."""
     result = await db.execute(select(User).where(User.id == user_id))
@@ -35,16 +34,6 @@ async def get_profile(user_id: str = Depends(get_current_user_id), db: AsyncSess
         "language_pref": user.language_pref,
         "role": user.role,
         "created_at": user.created_at.isoformat(),
-=======
-async def get_profile(user_id: str = Depends(get_current_user_id)):
-    """Get current user profile (Mock Implementation)."""
-    return {
-        "id": user_id,
-        "email": f"{user_id}@traveloop.in" if "@" not in user_id else user_id,
-        "full_name": "Admin User" if "admin" in user_id else "Super User",
-        "role": "super-admin" if "super" in user_id else "admin",
-        "avatar": f"https://api.dicebear.com/7.x/avataaars/svg?seed={user_id}"
->>>>>>> Stashed changes
     }
 
 

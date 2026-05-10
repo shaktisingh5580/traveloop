@@ -12,22 +12,14 @@ from app.models.geography import City, Country
 
 router = APIRouter()
 
-<<<<<<< Updated upstream
 async def require_admin(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user or user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
-=======
-
-async def require_admin(user_id: str = Depends(get_current_user_id)):
-    """Dependency — ensures current user has admin role."""
-    # TODO: Implement — query user, check role == 'admin'
->>>>>>> Stashed changes
     return user_id
 
 @router.get("/stats")
-<<<<<<< Updated upstream
 async def get_platform_stats(admin_id: str = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
     total_users = (await db.execute(select(func.count(User.id)).where(User.is_active == True))).scalar()
@@ -37,17 +29,6 @@ async def get_platform_stats(admin_id: str = Depends(require_admin), db: AsyncSe
     new_trips = (await db.execute(select(func.count(Trip.id)).where(Trip.created_at >= week_ago))).scalar()
     new_users = (await db.execute(select(func.count(User.id)).where(User.created_at >= week_ago))).scalar()
     return {"total_users": total_users, "total_trips": total_trips, "active_trips": active_trips, "public_trips": public_trips, "trips_this_week": new_trips, "new_users_this_week": new_users}
-=======
-async def get_platform_stats(admin_id: str = Depends(require_admin)):
-    """Get platform-wide statistics (Mock Implementation)."""
-    return [
-        {"title": "Total Users", "value": "42,892", "change": "+12.5%", "trend": "up", "color": "#22c55e"},
-        {"title": "Trips Created", "value": "15,204", "change": "+18.2%", "trend": "up", "color": "#22c55e"},
-        {"title": "Active Users", "value": "8,432", "change": "+4.3%", "trend": "up", "color": "#22c55e"},
-        {"title": "MTD Revenue", "value": "₹1,24,500", "change": "+22.1%", "trend": "up", "color": "#22c55e"}
-    ]
-
->>>>>>> Stashed changes
 
 @router.get("/top-cities")
 async def get_top_cities(limit: int = 10, admin_id: str = Depends(require_admin), db: AsyncSession = Depends(get_db)):

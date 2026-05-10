@@ -56,7 +56,6 @@ async def signup(data: SignupRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-<<<<<<< Updated upstream
 async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Authenticate user and return JWT tokens."""
     # Find user by email
@@ -87,16 +86,6 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         access_token=access_token,
         refresh_token=refresh,
     )
-=======
-async def login(data: LoginRequest):
-    """Authenticate user and return JWT tokens (Mock Implementation)."""
-    # For now, we accept any password for admin/super IDs
-    return {
-        "access_token": create_access_token({"sub": data.email}),
-        "refresh_token": create_refresh_token({"sub": data.email}),
-        "token_type": "bearer"
-    }
->>>>>>> Stashed changes
 
 
 @router.post("/refresh", response_model=TokenResponse)
