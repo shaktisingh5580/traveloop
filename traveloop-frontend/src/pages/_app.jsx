@@ -7,7 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
-  const isDashboard = router.pathname.startsWith("/dashboard") || router.pathname.startsWith("/trips") || router.pathname.startsWith("/cities") || router.pathname.startsWith("/community");
+  const isDashboard = router.pathname.startsWith("/dashboard") || router.pathname.startsWith("/trips") || router.pathname.startsWith("/cities") || router.pathname.startsWith("/community") || router.pathname.startsWith("/profile") || router.pathname.startsWith("/activities");
   const isAuth = router.pathname.startsWith("/login") || router.pathname.startsWith("/signup");
 
   if (isAuth) {

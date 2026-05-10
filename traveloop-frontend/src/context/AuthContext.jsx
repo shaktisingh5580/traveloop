@@ -39,7 +39,12 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (data) => {
     try {
-      await api.post("/auth/signup", data);
+      await api.post("/auth/signup", {
+        email: data.email,
+        password: data.password,
+        full_name: data.full_name,
+        phone: data.phone,
+      });
       return await login(data.email, data.password);
     } catch (err) {
       console.error("Signup failed:", err);

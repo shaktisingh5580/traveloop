@@ -3,6 +3,7 @@ Auth schemas — request/response models for authentication endpoints.
 """
 
 from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 
 
 class SignupRequest(BaseModel):
@@ -10,6 +11,7 @@ class SignupRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128, description="Min 8 characters")
     full_name: str = Field(..., min_length=2, max_length=150)
+    phone: Optional[str] = Field(None, max_length=20)
 
 
 class LoginRequest(BaseModel):

@@ -1,100 +1,260 @@
 import Head from "next/head";
+import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { MOCK_DATA } from "@/data/mockData";
+import * as api from "@/lib/api";
 
 export default function TripView() {
   const router = useRouter();
   const { tripId } = router.query;
-  const itinerary = MOCK_DATA.itinerary;
+  const [trip, setTrip] = useState(null);
+  const [stops, setStops] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterDay, setFilterDay] = useState("all");
+  const [sortBy, setSortBy] = useState("time");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!tripId) return;
+    const fetchData = async () => {
+      try {
+        const [tripData, stopsData, expensesData] = await Promise.all([
+          api.get(`/trips/${tripId}`),
+          api.get(`/trips/${tripId}/stops`).catch(() => []),
+          api.get(`/trips/${tripId}/expenses`).catch(() => []),
+        ]);
+        setTrip(tripData);
+        setStops(stopsData || []);
+        setExpenses(expensesData || []);
+      } catch (err) {
+        console.error("Failed to load trip:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [tripId]);
+
+  // Build day-wise itinerary from stops and their activities
+  const buildDayWise = () => {
+    const days = [];
+    stops.forEach((stop) => {
+      const arrival = new Date(stop.arrival_date);
+      const departure = new Date(stop.departure_date);
+      const diffDays = Math.ceil((departure - arrival) / (1000 * 60 * 60 * 24)) + 1;
+
+      for (let d = 0; d < diffDays; d++) {
+        const date = new Date(arrival);
+        date.setDate(date.getDate() + d);
+        const dateStr = date.toISOString().split("T")[0];
+
+        const dayActivities = (stop.activities || [])
+          .filter(a => !a.scheduled_date || a.scheduled_date === dateStr)
+          .map(a => ({
+            ...a,
+            cityName: stop.city?.name || stop.city_name || "Unknown",
+            stopId: stop.id,
+          }));
+
+        // Also add the stop itself as context
+        days.push({
+          date: dateStr,
+          dayNumber: days.length + 1,
+          cityName: stop.city?.name || stop.city_name || "Unknown",
+          activities: dayActivities,
+          stop,
+        });
+      }
+    });
+    return days;
+  };
+
+  const dayWise = buildDayWise();
+
+  // Calculate budget
+  const totalBudget = trip?.total_budget || 0;
+  const totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  const expensesByCategory = expenses.reduce((acc, e) => {
+    acc[e.category] = (acc[e.category] || 0) + (parseFloat(e.amount) || 0);
+    return acc;
+  }, {});
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <svg className="animate-spin h-8 w-8 text-brand-500" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <>
-      <Head><title>Tokyo Express | Traveloop</title></Head>
-      <div className="flex flex-col lg:flex-row gap-10">
-        {/* Left: Itinerary Timeline */}
-        <div className="flex-1 space-y-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Tokyo Express</h1>
-              <p className="text-slate-500 font-medium flex items-center gap-2">
-                <span>🇯🇵</span> Tokyo, Japan • Oct 12 – Oct 24
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-              </button>
-              <button className="btn-brand !px-4 !py-2.5 text-sm">Add Activity</button>
-            </div>
+      <Head><title>{trip?.name || "Trip"} | Traveloop</title></Head>
+      <div className="space-y-6 pb-20">
+        {/* Search + Filters */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex-1 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search activities..."
+              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:border-brand-500 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+          <select className="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none cursor-pointer" value={filterDay} onChange={(e) => setFilterDay(e.target.value)}>
+            <option value="all">Group by: All Days</option>
+            {dayWise.map((d, i) => <option key={i} value={d.dayNumber}>Day {d.dayNumber}</option>)}
+          </select>
+          <button className="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:border-slate-300 transition-colors">
+            Filter
+          </button>
+          <select className="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none cursor-pointer" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="time">Sort: Time</option>
+            <option value="cost">Sort: Cost</option>
+          </select>
+        </div>
 
-          <div className="space-y-12">
-            {itinerary.map((day) => (
-              <div key={day.day} className="relative">
-                <div className="flex items-center gap-4 mb-6 sticky top-28 bg-white/80 backdrop-blur-sm z-10 py-2">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold font-outfit shadow-lg">
-                    D{day.day}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">{day.date}</h3>
-                  </div>
-                </div>
-
-                <div className="ml-6 border-l-2 border-slate-100 pl-10 space-y-6">
-                  {day.activities.map((activity) => (
-                    <div key={activity.id} className="relative group">
-                      <div className="absolute -left-[51px] top-4 w-5 h-5 rounded-full border-4 border-white bg-slate-200 group-hover:bg-brand-500 group-hover:scale-125 transition-all" />
-                      <div className="card !p-5 flex items-center gap-6">
-                        <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl">
-                          {activity.type === 'food' ? '🍜' : activity.type === 'transport' ? '✈️' : activity.type === 'stay' ? '🏨' : '⛩️'}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-bold text-slate-900">{activity.title}</h4>
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{activity.time}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-slate-500 font-medium">
-                            <span className="flex items-center gap-1">📍 {activity.location}</span>
-                            <span>•</span>
-                            <span>{activity.duration}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+        {/* Title */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 font-outfit">Itinerary for {trip?.name || "a selected place"}</h1>
+            <p className="text-sm text-slate-500 mt-1">{trip?.start_date} → {trip?.end_date} · {stops.length} stops</p>
+          </div>
+          <div className="flex gap-2">
+            <Link href={`/trips/${tripId}/edit`} className="px-4 py-2.5 bg-brand-500 text-white text-sm font-bold rounded-xl hover:bg-brand-600 transition-all">
+              Edit
+            </Link>
+            <Link href={`/trips/${tripId}/budget`} className="px-4 py-2.5 bg-white border border-slate-200 text-sm font-bold rounded-xl hover:border-slate-300 transition-all">
+              Budget
+            </Link>
           </div>
         </div>
 
-        {/* Right: Summary & Stats */}
-        <div className="w-full lg:w-96 space-y-8">
-          <div className="card">
-            <h3 className="text-lg font-bold mb-6">Trip Summary</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                <span className="text-sm font-bold text-slate-500">Activities</span>
-                <span className="text-lg font-bold text-slate-900">24</span>
+        {/* Day-wise Itinerary */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left: Timeline */}
+          <div className="flex-1 space-y-8">
+            {(filterDay === "all" ? dayWise : dayWise.filter(d => d.dayNumber === parseInt(filterDay))).map((day, di) => (
+              <div key={di}>
+                {/* Day Header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg">
+                    Day {day.dayNumber}
+                  </div>
+                  <span className="text-sm font-medium text-slate-500">{day.date} · {day.cityName}</span>
+                  <div className="flex-1 h-px bg-slate-100" />
+                </div>
+
+                {/* Activity Table Header */}
+                <div className="flex items-center px-4 py-2 mb-2">
+                  <span className="flex-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Physical Activity</span>
+                  <span className="w-28 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Expense</span>
+                </div>
+
+                {/* Activities */}
+                <div className="space-y-2">
+                  {day.activities.length > 0 ? (
+                    day.activities.map((act, ai) => (
+                      <div key={ai} className="flex items-center bg-white border border-slate-200 rounded-2xl p-4 hover:shadow-sm transition-all group">
+                        <div className="flex-1">
+                          <h4 className="text-sm font-bold text-slate-900">{act.activity?.name || act.name || "Activity"}</h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {act.start_time && `${act.start_time} - ${act.end_time || ""}`}
+                            {act.activity?.duration_hours && ` · ${act.activity.duration_hours}h`}
+                          </p>
+                        </div>
+                        <div className="w-28 text-right">
+                          <span className="text-sm font-bold text-slate-900">
+                            ₹{act.custom_cost || act.activity?.estimated_cost || 0}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    // Show stop info if no specific activities
+                    <div className="flex items-center bg-white border border-slate-200 rounded-2xl p-4">
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-slate-900">Stay in {day.cityName}</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">{day.stop.accommodation || "Accommodation"}</p>
+                      </div>
+                      <div className="w-28 text-right">
+                        <span className="text-sm font-bold text-slate-900">₹{day.stop.accommodation_cost || 0}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Transport between stops */}
+                  {day.stop.transport_mode && di < dayWise.length - 1 && (
+                    <div className="flex items-center justify-center py-2">
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <div className="w-px h-4 bg-slate-200" />
+                        <span>↓ {day.stop.transport_mode} · ₹{day.stop.transport_cost || 0}</span>
+                        <div className="w-px h-4 bg-slate-200" />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                <span className="text-sm font-bold text-slate-500">Total Budget</span>
-                <span className="text-lg font-bold text-slate-900">$2,450</span>
+            ))}
+
+            {dayWise.length === 0 && (
+              <div className="text-center py-16 bg-white rounded-3xl border border-slate-100">
+                <p className="text-slate-400 mb-4">No itinerary built yet.</p>
+                <Link href={`/trips/${tripId}/edit`} className="btn-brand px-6 py-3 text-sm">
+                  Build Itinerary
+                </Link>
               </div>
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-brand-100">
-                <span className="text-sm font-bold text-brand-600">Spent so far</span>
-                <span className="text-lg font-bold text-brand-600">$1,200</span>
-              </div>
-            </div>
-            <button className="btn-primary w-full mt-6">Manage Budget</button>
+            )}
           </div>
 
-          <div className="card !p-0 overflow-hidden relative aspect-square bg-slate-100 flex items-center justify-center">
-             <div className="text-4xl grayscale opacity-30">🗺️ MAP VIEW</div>
-             <div className="absolute bottom-6 left-6 right-6 p-4 bg-white/90 backdrop-blur rounded-2xl shadow-xl">
-               <p className="text-sm font-bold text-slate-900">Next activity in 2h</p>
-               <p className="text-xs text-slate-500">Shinjuku Gyoen National Garden</p>
-             </div>
+          {/* Right: Budget Summary */}
+          <div className="w-full lg:w-80 space-y-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm sticky top-8">
+              <h3 className="text-base font-bold text-slate-900 mb-4">Budget Summary</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+                  <span className="text-xs font-bold text-slate-500">Total Budget</span>
+                  <span className="text-sm font-bold text-slate-900">₹{totalBudget.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                  <span className="text-xs font-bold text-emerald-600">Total Expenses</span>
+                  <span className="text-sm font-bold text-emerald-700">₹{totalExpenses.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+                  <span className="text-xs font-bold text-slate-500">Remaining</span>
+                  <span className={`text-sm font-bold ${totalBudget - totalExpenses >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                    ₹{(totalBudget - totalExpenses).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Category breakdown */}
+              {Object.keys(expensesByCategory).length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">By Category</h4>
+                  <div className="space-y-2">
+                    {Object.entries(expensesByCategory).map(([cat, amount]) => (
+                      <div key={cat} className="flex justify-between text-sm">
+                        <span className="text-slate-600 capitalize">{cat}</span>
+                        <span className="font-bold text-slate-900">₹{amount.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <Link href={`/trips/${tripId}/budget`} className="mt-4 block w-full text-center py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all">
+                Manage Budget
+              </Link>
+            </div>
           </div>
         </div>
       </div>
