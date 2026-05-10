@@ -34,7 +34,8 @@ INSERT INTO countries (name, code, region_id, currency_code, currency_symbol) VA
 ('Greece', 'GR', 4, 'EUR', '€'),
 ('Vietnam', 'VN', 2, 'VND', '₫'),
 ('Mexico', 'MX', 5, 'MXN', '$'),
-('Brazil', 'BR', 6, 'BRL', 'R$');
+('Brazil', 'BR', 6, 'BRL', 'R$'),
+('United Arab Emirates', 'AE', 7, 'AED', 'د.إ');
 
 -- ============================================================
 -- CITIES
@@ -59,7 +60,7 @@ INSERT INTO cities (name, country_id, latitude, longitude, cost_index, popularit
 ('Cancun', 14, 21.1619, -86.8515, 3, 84, 'Caribbean beaches with Mayan ruins nearby', 'America/Cancun', 'Dec-Apr'),
 ('Rio de Janeiro', 15, -22.9068, -43.1729, 3, 89, 'Carnival city with Christ the Redeemer and Copacabana', 'America/Sao_Paulo', 'Dec-Mar'),
 ('Kyoto', 3, 35.0116, 135.7681, 3, 88, 'Ancient capital with thousands of temples and geisha culture', 'Asia/Tokyo', 'Mar-May'),
-('Dubai', NULL, 25.2048, 55.2708, 4, 91, 'Futuristic skyline with luxury shopping and desert adventures', 'Asia/Dubai', 'Nov-Mar');
+('Dubai', 16, 25.2048, 55.2708, 4, 91, 'Futuristic skyline with luxury shopping and desert adventures', 'Asia/Dubai', 'Nov-Mar');
 
 -- ============================================================
 -- ACTIVITIES (Sample for key cities)

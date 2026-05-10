@@ -3,18 +3,19 @@ Application configuration loaded from environment variables.
 """
 
 from pydantic_settings import BaseSettings
-from typing import List
 
 
 class Settings(BaseSettings):
     """Central configuration — reads from .env file."""
 
     # App
+    PROJECT_NAME: str = "Traveloop"
     APP_NAME: str = "Traveloop"
     APP_ENV: str = "development"
     APP_DEBUG: bool = True
     APP_PORT: int = 8000
     APP_HOST: str = "0.0.0.0"
+    API_V1_STR: str = "/api/v1"
 
     # Database
     DB_HOST: str = "localhost"
@@ -30,16 +31,26 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    # CORS — stored as comma-separated string, parsed into list
+    CORS_ORIGINS: str = "http://localhost:3000"
 
     # Uploads
     UPLOAD_DIR: str = "./uploads"
     MAX_UPLOAD_SIZE_MB: int = 5
-    ALLOWED_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "webp"]
+    ALLOWED_EXTENSIONS: str = "jpg,jpeg,png,webp"
 
     # Gzip
     GZIP_MINIMUM_SIZE: int = 500
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Parse CORS_ORIGINS comma-separated string into a list."""
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+    @property
+    def allowed_extensions_list(self) -> list[str]:
+        """Parse ALLOWED_EXTENSIONS comma-separated string into a list."""
+        return [ext.strip() for ext in self.ALLOWED_EXTENSIONS.split(",") if ext.strip()]
 
     @property
     def async_database_url(self) -> str:
