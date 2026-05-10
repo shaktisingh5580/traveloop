@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { systemLogs } from '../../data/mockData';
-import { Server, Shield, Database, Globe, Key } from 'lucide-react';
+import { Server, Shield, Database, Globe, Key, UserCog } from 'lucide-react';
 import ActionModal from '../../modals/ActionModal';
 import { useRole } from '../../context/RoleContext';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const { hasPermission } = useRole();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('General');
   const [modalTitle, setModalTitle] = useState(null);
+
+  const systemLogs = [
+    { id: 1, service: 'API Gateway', status: 'Healthy', latency: '24ms' },
+    { id: 2, service: 'Auth Service', status: 'Healthy', latency: '12ms' },
+    { id: 3, service: 'Trip DB', status: 'Healthy', latency: '8ms' },
+    { id: 4, service: 'CDN', status: 'Degraded', latency: '450ms' },
+  ];
 
   const canEditSettings = hasPermission('change_system_settings');
 
@@ -20,12 +28,21 @@ const Settings = () => {
     setModalTitle(title);
   };
 
+  const handleTabClick = (label) => {
+    if (label === 'Users') {
+      navigate('/users');
+    } else {
+      setActiveTab(label);
+    }
+  };
+
   return (
     <DashboardLayout title="System Settings">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {[
             { label: 'General', icon: Globe },
+            { label: 'Users', icon: UserCog },
             { label: 'Security', icon: Shield },
             { label: 'Infrastructure', icon: Server },
             { label: 'Database', icon: Database },
@@ -40,7 +57,7 @@ const Settings = () => {
                 background: activeTab === item.label ? 'var(--bg-elevated)' : 'transparent',
                 color: activeTab === item.label ? 'var(--accent)' : 'var(--text-secondary)'
               }}
-              onClick={() => setActiveTab(item.label)}
+              onClick={() => handleTabClick(item.label)}
             >
               <item.icon size={18} />
               {item.label}

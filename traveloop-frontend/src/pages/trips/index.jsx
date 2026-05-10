@@ -1,13 +1,14 @@
 import Head from "next/head";
 import Link from "next/link";
-
-const trips = [
-  { id: 1, name: "Tokyo Express", dates: "Oct 12 – Oct 24", country: "Japan 🇯🇵", status: "upcoming", img: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=600" },
-  { id: 2, name: "Euro Trip 2026", dates: "Jul 1 – Aug 15", country: "Multiple 🇪🇺", status: "planning", img: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=600" },
-  { id: 3, name: "Bali Retreat", dates: "Mar 5 – Mar 18", country: "Indonesia 🇮🇩", status: "completed", img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=600" },
-];
+import { useState, useEffect } from "react";
+import * as api from "@/lib/api";
 
 export default function MyTrips() {
+  const [trips, setTrips] = useState([]);
+
+  useEffect(() => {
+    api.get("/trips/").then(res => setTrips(res || [])).catch(console.error);
+  }, []);
   return (
     <>
       <Head><title>My Trips | Traveloop</title></Head>

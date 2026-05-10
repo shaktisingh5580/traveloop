@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import MetricCard from '../../components/ui/MetricCard';
 import ChartCard from '../../components/ui/ChartCard';
+import { api } from '../../lib/api';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { userGrowthData } from '../../data/mockData';
 
 const UserAnalytics = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get('/admin/recent-trips');
+        setData(res.map(t => ({ name: t.date, users: t.count * 10, trips: t.count })));
+      } catch (err) {
+        console.error('Failed to fetch analytics:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
   return (
     <DashboardLayout title="User Analytics">
       <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '32px' }}>
@@ -19,7 +35,7 @@ const UserAnalytics = () => {
 
       <ChartCard title="Acquisition vs Engagement" subtitle="Monthly user growth and active sessions">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={userGrowthData}>
+          <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
             <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />

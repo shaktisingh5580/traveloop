@@ -6,9 +6,16 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   AreaChart, Area
 } from 'recharts';
-import { revenueData } from '../../data/mockData';
 
 const Revenue = () => {
+  const revenueData = [
+    { month: 'Jan', revenue: 65000, cost: 32000 },
+    { month: 'Feb', revenue: 72000, cost: 35000 },
+    { month: 'Mar', revenue: 85000, cost: 40000 },
+    { month: 'Apr', revenue: 98000, cost: 45000 },
+    { month: 'May', revenue: 110000, cost: 52000 },
+    { month: 'Jun', revenue: 125000, cost: 58000 },
+  ];
   return (
     <DashboardLayout title="Revenue & Cost Metrics">
       <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '32px' }}>

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import MetricCard from '../../components/ui/MetricCard';
 import DataTable from '../../components/ui/DataTable';
-import { communityFlags } from '../../data/mockData';
 import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import ActionModal from '../../modals/ActionModal';
 import { useRole } from '../../context/RoleContext';
@@ -11,6 +10,12 @@ const Community = () => {
   const { hasPermission } = useRole();
   const [selectedFlag, setSelectedFlag] = useState(null);
   const [modalType, setModalType] = useState(null);
+
+  const communityFlags = [
+    { id: 1, user: 'User 42', reason: 'Spam', post: 'Check out this totally legitimate link...', status: 'Pending' },
+    { id: 2, user: 'Traveler99', reason: 'Inappropriate', post: 'This post violates our community standards...', status: 'Pending' },
+    { id: 3, user: 'Bot001', reason: 'Abuse', post: 'Harassment or hate speech content...', status: 'Reviewed' },
+  ];
 
   const canModerate = hasPermission('manage_community');
 

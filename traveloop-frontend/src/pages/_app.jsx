@@ -1,11 +1,22 @@
 import Head from "next/head";
-import DashboardLayout from "@/components/layout/DashboardLayout";
+import DashboardLayout from "@/layouts/DashboardLayout";
+import MainLayout from "@/layouts/MainLayout";
 import "@/styles/globals.css";
 import { useRouter } from "next/router";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
-  const isDashboard = router.pathname.startsWith("/dashboard");
+  const isDashboard = router.pathname.startsWith("/dashboard") || router.pathname.startsWith("/trips") || router.pathname.startsWith("/cities") || router.pathname.startsWith("/community");
+  const isAuth = router.pathname.startsWith("/login") || router.pathname.startsWith("/signup");
+
+  if (isAuth) {
+    return (
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
+    );
+  }
 
   return (
     <>
@@ -13,15 +24,17 @@ export default function App({ Component, pageProps }) {
         <title>Traveloop</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <div className="font-sans antialiased text-slate-900 min-h-screen bg-white">
+      <AuthProvider>
         {isDashboard ? (
           <DashboardLayout>
             <Component {...pageProps} />
           </DashboardLayout>
         ) : (
-          <Component {...pageProps} />
+          <MainLayout>
+            <Component {...pageProps} />
+          </MainLayout>
         )}
-      </div>
+      </AuthProvider>
     </>
   );
 }
