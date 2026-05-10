@@ -37,12 +37,11 @@ export default function Signup() {
         <div className="card max-w-xl w-full bg-white !p-12">
           <div className="flex flex-col items-center mb-10 text-center">
             <Link href="/" className="mb-8">
-              <div className="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center shadow-brand">
-                <span className="text-white text-2xl font-bold font-outfit">T</span>
+              <div className="w-auto h-12 flex items-center justify-center">
+                <img src="/logo.png" alt="Traveloop Logo" className="w-auto h-full object-contain" />
               </div>
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Join Traveloop</h1>
-            <p className="text-slate-500">Plan your next adventure with the community.</p>
+            <h1 className="text-3xl font-bold mb-2">Registration</h1>
           </div>
 
           <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
@@ -51,7 +50,7 @@ export default function Signup() {
               <input 
                 name="firstName"
                 type="text" 
-                placeholder="John" 
+                placeholder="First Name" 
                 className="input-field" 
                 value={formData.firstName}
                 onChange={handleChange}
@@ -62,21 +61,47 @@ export default function Signup() {
               <input 
                 name="lastName"
                 type="text" 
-                placeholder="Doe" 
+                placeholder="Last Name" 
                 className="input-field" 
                 value={formData.lastName}
                 onChange={handleChange}
               />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-1">
               <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Email Address</label>
               <input 
                 name="email"
                 type="email" 
-                placeholder="name@example.com" 
+                placeholder="Email Address" 
                 className="input-field" 
                 value={formData.email}
                 onChange={handleChange}
+              />
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Date of birth</label>
+              <input 
+                name="dob"
+                type="date" 
+                className="input-field" 
+              />
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">City</label>
+              <input 
+                name="city"
+                type="text" 
+                placeholder="City" 
+                className="input-field" 
+              />
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Country</label>
+              <input 
+                name="country"
+                type="text" 
+                placeholder="Country" 
+                className="input-field" 
               />
             </div>
             <div className="md:col-span-2">
@@ -84,13 +109,20 @@ export default function Signup() {
               <input 
                 name="password"
                 type="password" 
-                placeholder="Min. 8 characters" 
+                placeholder="Password" 
                 className="input-field" 
                 value={formData.password}
                 onChange={handleChange}
               />
             </div>
-            <button type="submit" className="md:col-span-2 btn-brand py-4 text-lg mt-2">Create Account</button>
+            
+            <div className="md:col-span-2 text-center my-2">
+              <button type="button" className="text-sm font-bold text-slate-500 hover:text-brand-500">
+                + Add more details...
+              </button>
+            </div>
+
+            <button type="submit" className="md:col-span-2 btn-brand py-4 text-lg mt-2">Register</button>
           </form>
 
           <div className="mt-10 pt-8 border-t border-slate-100 text-center">

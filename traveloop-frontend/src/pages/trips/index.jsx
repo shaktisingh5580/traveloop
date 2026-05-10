@@ -18,7 +18,7 @@ export default function MyTrips() {
             <h1 className="text-3xl font-bold font-outfit text-slate-900 mb-2">My Trips</h1>
             <p className="text-slate-500">Manage all your travel itineraries in one place.</p>
           </div>
-          <Link href="/dashboard/trips/new" className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">
+          <Link href="/trips/new" className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             New Trip
           </Link>
@@ -26,7 +26,7 @@ export default function MyTrips() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {trips.map((trip) => (
-            <Link key={trip.id} href={`/dashboard/trips/${trip.id}/view`} className="group bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-2xl hover:border-slate-300 transition-all">
+            <Link key={trip.id} href={`/trips/${trip.id}/view`} className="group bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-2xl hover:border-slate-300 transition-all">
                <div className="h-48 overflow-hidden relative">
                   <img src={trip.img} alt={trip.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />

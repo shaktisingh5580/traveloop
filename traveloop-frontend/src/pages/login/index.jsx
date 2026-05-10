@@ -24,8 +24,8 @@ export default function Login() {
         <div className="card max-w-md w-full bg-white !p-12">
           <div className="flex flex-col items-center mb-10">
             <Link href="/" className="mb-8">
-              <div className="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center shadow-brand">
-                <span className="text-white text-2xl font-bold font-outfit">T</span>
+              <div className="w-auto h-12 flex items-center justify-center">
+                <img src="/logo.png" alt="Traveloop Logo" className="w-auto h-full object-contain" />
               </div>
             </Link>
             <h1 className="text-3xl font-bold mb-2">Welcome back</h1>
